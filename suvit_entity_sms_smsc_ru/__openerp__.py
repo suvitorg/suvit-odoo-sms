@@ -1,9 +1,9 @@
 {
-    'name': "Suvit P1 SMS",
+    'name': "Suvit smsc.ru",
     'version': "1.0",
     'author': "SUVIT LLC",
     'category': "Tools",
-    'summary': "Allows 2 way sms conversations between leads/partners using the p1sms.ru gateway",
+    'summary': "Allows 2 way sms conversations between leads/partners using the smsc.ru gateway",
     'license':'LGPL-3',
     'data': [
         # 'security/ir.model.access.csv',
@@ -18,6 +18,6 @@
     ],
     'images':[
     ],
-    'installable': False,  # not work yet
+    'installable': True,
     'application': True,
 }
