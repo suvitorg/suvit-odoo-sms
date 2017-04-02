@@ -11,7 +11,11 @@
                        attrs="{'invisible': [('gateway_model', '!=', 'esms.smsc')]}">
                   <field name="smsc_username" />
                   <field name="smsc_password" widget="password" />
-                  <field name="smsc_sender" />
+
+                  <group string="Дополнительно">
+                    <field name="smsc_store_last_received_id" />
+                    <field name="smsc_last_received_id" attrs="{'invisible': [('smsc_store_last_received_id', '=', False)]}" />
+                  </group>
                 </group>
               </xpath>
           </field>

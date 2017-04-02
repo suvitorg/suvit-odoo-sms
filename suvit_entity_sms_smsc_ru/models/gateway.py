@@ -43,6 +43,7 @@ class SmscGateway(models.Model):
                      my_model_name='', my_record_id=0, my_field_name=''):
 
         sms_account = self.env['esms.accounts'].search([('id', '=', account_id)])
+        gateway_id = self.env['esms.gateways'].search([('gateway_model_name', '=', 'esms.smsc')])
 
         from_number = format_number(from_number)
         to_number = format_number(to_number)
@@ -54,6 +55,7 @@ class SmscGateway(models.Model):
                                        'sender': from_number,
                                        'phones': to_number,
                                        'mes': sms_content,
+                                       'charset': 'utf-8', # always use utf8
                                        'cost': 2,  # обычная отправка, но добавить в ответ стоимость выполненной рассылки
                                        'fmt': 3,  # ответ в json формате
                                        })
@@ -89,8 +91,8 @@ class SmscGateway(models.Model):
         # ('EXPIRED','Timed Out'),
         # ('UNDELIV', 'Undelivered'))
         my_model = self.env['ir.model'].search([('model','=', my_model_name)])
-        my_field = self.env['ir.model.fields'].search([('name','=', my_field_name)])
-        gateway_id = self.env['esms.gateways'].search([('gateway_model_name', '=', 'esms.smsc')])
+        my_field = self.env['ir.model.fields'].search([('model_id', '=', my_model.id),
+                                                       ('name', '=', my_field_name)])
 
         history_id = self.env['esms.history'].create({'account_id': sms_account.id,
                                                       'gateway_id': gateway_id.id,
@@ -121,22 +123,29 @@ class SmscGateway(models.Model):
 
     def check_messages(self, account_id, message_id=""):
         sms_account = self.env['esms.accounts'].browse(account_id)
+        gateway_id = self.env['esms.gateways'].search([('gateway_model_name', '=', 'esms.smsc')])
 
         # receive. GET or POST
         # http://smsc.ru/sys/get.php?get_answers=1&login=<login>&psw=<password>
 
+        # TODO. check for one message
         if message_id != "":
             pass
         else:
             pass
 
+        request_data = {'get_answers': 1,
+                        'login': sms_account.smsc_username,
+                        'psw': sms_account.smsc_password,
+                        'fmt': 3,  # json format
+                        }
+
+        if sms_account.smsc_store_last_received_id and sms_account.smsc_last_received_id:
+            request_data['after_id'] = sms_account.smsc_last_received_id
+
         # get all messages
-        resp = requests.post('http://smsc.ru/sys/get.php?get_answers=1&login=<login>&psw=<password>',
-                             data={'get_answers': 1,
-                                   'login': sms_account.smsc_username,
-                                   'psw': sms_account.smsc_password,
-                                   'fmt': 3,  # json format
-                                   })
+        resp = requests.post('http://smsc.ru/sys/get.php',
+                             data=request_data)
 
         # resp error
         # {
@@ -160,9 +169,15 @@ class SmscGateway(models.Model):
         #  },
         #  ...]
 
-        gateway_id = self.env['esms.gateways'].search([('gateway_model_name', '=', 'esms.smsc')])
+        resp_data = resp.json()
+        if 'error_code' in resp_data:
+            # TODO. store error in history
+            status = 'failed'
+            human_read_error = resp_data['error']
+            return
 
-        for sms in resp.json():
+        sms = None
+        for sms in resp_data:
             status = 'RECEIVED'
             human_read_error = 'OK'
             history_id = self.env['esms.history'].create({'account_id': sms_account.id,
@@ -186,11 +201,15 @@ class SmscGateway(models.Model):
 
             continue
 
+            # Custom logic, this may be pluggable
+            # 
             target_model = 'sale.order' # or lead
             record_id = 1
             self.env[target_model].search([('id', '=', record_id)]).message_post(body=sms.message,
                                                                                  subject="Получено SMS")
 
+        if sms_account.smsc_store_last_received_id and sms:
+            sms_account.smsc_last_received_id = sms.id
 
 
 class SmscAccount(models.Model):
@@ -198,4 +217,7 @@ class SmscAccount(models.Model):
 
     smsc_username = fields.Char(string='SMSЦентр API Username')
     smsc_password = fields.Char(string='SMSЦентр API Пароль')
-    smsc_sender = fields.Char(string=u'SMSЦентр API Отправитель')
+    # smsc_sender = fields.Char(string=u'SMSЦентр API Отправитель') - use esms.verified.numbers
+
+    smsc_store_last_received_id = fields.Boolean(string=u'Сохранять последний полученный ид')
+    smsc_last_received_id = fields.Integer(string=u'Последний полученный ид')
