@@ -1,5 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import datetime
+import hashlib
 
 import requests
 
@@ -51,7 +52,7 @@ class SmscGateway(models.Model):
         try:
             resp = requests.post('http://smsc.ru/sys/send.php',
                                  data={'login': sms_account.smsc_username,
-                                       'psw': sms_account.smsc_password,
+                                       'psw': hashlib.md5(sms_account.smsc_password).hexdigest(),
                                        'sender': from_number,
                                        'phones': to_number,
                                        'mes': sms_content,
@@ -136,7 +137,7 @@ class SmscGateway(models.Model):
 
         request_data = {'get_answers': 1,
                         'login': sms_account.smsc_username,
-                        'psw': sms_account.smsc_password,
+                        'psw': hashlib.md5(sms_account.smsc_password).hexdigest(),
                         'fmt': 3,  # json format
                         }
 
