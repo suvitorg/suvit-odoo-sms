@@ -11,6 +11,7 @@
         'data/esms.gateways.csv',
 
         'views/gateway_config.xml',
+        'views/handler.xml',
     ],
     'demo': [],
     'depends': [

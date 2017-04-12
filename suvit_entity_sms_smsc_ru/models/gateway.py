@@ -22,7 +22,7 @@ def format_number(number):
 
 class SmscGateway(models.Model):
     # TODO move to abstract module
-    _name = 'esms.smsc.handler'
+    _name = 'suvit.sms.handler'
     _descripion = u'Обработчик шлюза Шлюз SMSЦентр'
     _order = 'sequence,id'
 
@@ -60,6 +60,7 @@ class SmscGateway(models.Model):
         #  'to_number' - накакой номер
         #  'data' - дата
         #  'body' - сообщение
+        #  'cost' - цена (Decimal)
         # handler can change sms dict
         handler = getattr(self, self.method)
         return handler(sms)
@@ -165,13 +166,13 @@ class SmscGateway(models.Model):
         # TODO what tz??
         sms_date = datetime.datetime.utcnow()
         Handler = self.env['esms.smsc.handler']
-        Handler.run(sms={'direction': 'O',
-                         'from_number': from_number,
-                         'to_number': to_number,
-                         'id': sms_id,
-                         'body': sms_content,
-                         'date': sms_date,
-                         'cost': cost)
+        Handler.run_all(sms={'direction': 'O',
+                             'from_number': from_number,
+                             'to_number': to_number,
+                             'id': sms_id,
+                             'body': sms_content,
+                             'date': sms_date,
+                             'cost': cost)
 
         history_id = self.env['esms.history'].create({'account_id': sms_account.id,
                                                       'gateway_id': gateway_id.id,
@@ -279,13 +280,13 @@ class SmscGateway(models.Model):
                                                           'cost': 0  # ???
                                                           })
 
-            Handler.run(sms={'direction': 'I',
-                             'from_number': sms.phone,
-                             'to_number': sms.to_phone,
-                             'id': sms.id,
-                             'body': sms.message,
-                             'date': sms.received,
-                             'cost': 0)
+            Handler.run_all(sms={'direction': 'I',
+                                 'from_number': sms.phone,
+                                 'to_number': sms.to_phone,
+                                 'id': sms.id,
+                                 'body': sms.message,
+                                 'date': sms.received,
+                                 'cost': 0)
 
         if sms_account.smsc_store_last_received_id and sms:
             sms_account.smsc_last_received_id = sms.id
