@@ -7,7 +7,7 @@
             <field name="model">suvit.sms.handler</field>
             <field name="arch" type="xml">
                 <tree editable="bottom" create="true">
-                    <field name="sequence" widget="handler"/>
+                    <field name="sequence" widget="handle"/>
                     <field name="direction" />
                     <field name="name"/>
                     <field name="method"/>
