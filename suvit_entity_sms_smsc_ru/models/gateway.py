@@ -162,7 +162,7 @@ class SmscGateway(models.Model):
                              'id': sms_id,
                              'body': sms_content,
                              'date': sms_date,
-                             'cost': cost)
+                             'cost': cost})
 
         history_id = self.env['esms.history'].create({'account_id': sms_account.id,
                                                       'gateway_id': gateway_id.id,
@@ -276,7 +276,7 @@ class SmscGateway(models.Model):
                                  'id': sms.id,
                                  'body': sms.message,
                                  'date': sms.received,
-                                 'cost': 0)
+                                 'cost': 0})
 
         if sms_account.smsc_store_last_received_id and sms:
             sms_account.smsc_last_received_id = sms.id
