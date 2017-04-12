@@ -35,11 +35,12 @@ class SmsHandler(models.Model):
                               track_visibility='onchange')
 
     active = fields.Boolean(string=u'Активный',
-                            default=True)
+                            default=True,
+                            track_visibility='onchange')
 
     direction = fields.Selection(string=u'Направление',
                                  selection=[('I', u'Входящие'),
-                                            ('O', u'Исходящие'),
+                                            ('O', u'Исходящие')],
                                  track_visibility='onchange'
                                  )
 
