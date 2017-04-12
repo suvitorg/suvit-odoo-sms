@@ -20,7 +20,7 @@ def format_number(number):
     return number
 
 
-class SmscGateway(models.Model):
+class SmsHandler(models.Model):
     # TODO move to abstract module
     _name = 'suvit.sms.handler'
     _descripion = u'Обработчик шлюза Шлюз SMSЦентр'
@@ -49,7 +49,7 @@ class SmscGateway(models.Model):
     @api.constrains('method')
     def check_importer(self):
         if not hasattr(self, self.method):
-            raise exceptions.ValidationError(u"Неправильный Импортер")
+            raise exceptions.ValidationError(u"Неправильное имя обработчика %s" % self.method)
 
     @api.multi
     def run(self, sms):
@@ -75,17 +75,6 @@ class SmscGateway(models.Model):
 
         for handler in self.search(domain):
             handler.run(sms)
-
-    @api.model
-    def baron_add_sms_to_order_history(self, sms):
-        # Custom logic, this may be pluggable
-        # 
-        target_model = 'sale.order' # or lead
-        record_id = 1
-        self.env[target_model].search([('id', '=', record_id)]).message_post(body=sms.message,
-                                                                             subject="Получено SMS")
-
-
 
 
 class SmscGateway(models.Model):
