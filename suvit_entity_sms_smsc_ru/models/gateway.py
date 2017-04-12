@@ -155,7 +155,7 @@ class SmscGateway(models.Model):
 
         # TODO what tz??
         sms_date = datetime.datetime.utcnow()
-        Handler = self.env['esms.smsc.handler']
+        Handler = self.env['suvit.sms.handler']
         Handler.run_all(sms={'direction': 'O',
                              'from_number': from_number,
                              'to_number': to_number,
@@ -246,7 +246,7 @@ class SmscGateway(models.Model):
             human_read_error = resp_data['error']
             return
 
-        Handler = self.env['esms.smsc.handler']
+        Handler = self.env['suvit.sms.handler']
         sms = None
         for sms in resp_data:
             status = 'RECEIVED'
