@@ -2,6 +2,7 @@
     'name': "Suvit smsc.ru",
     'version': "1.0",
     'author': "SUVIT LLC",
+    'website': 'https://suvit.ru',
     'category': "Tools",
     'summary': "Allows 2 way sms conversations between leads/partners using the smsc.ru gateway",
     'license':'LGPL-3',
@@ -17,6 +18,10 @@
     'depends': [
         'entity_sms'
     ],
+    "external_dependencies": {
+        'python': ['requests',
+                   ]
+    },
     'images':[
     ],
     'installable': True,
