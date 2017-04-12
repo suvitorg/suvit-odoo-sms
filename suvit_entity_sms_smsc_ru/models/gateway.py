@@ -21,6 +21,73 @@ def format_number(number):
 
 
 class SmscGateway(models.Model):
+    # TODO move to abstract module
+    _name = 'esms.smsc.handler'
+    _descripion = u'Обработчик шлюза Шлюз SMSЦентр'
+    _order = 'sequence,id'
+
+    name = fields.Char(string=u'Название обработчика',
+                       track_visibility='onchange'
+                       )
+
+    sequence = fields.Integer(string=u'Порядок',
+                              default=99,
+                              track_visibility='onchange')
+
+    active = fields.Boolean(string=u'Активный',
+                            default=True)
+
+    direction = fields.Selection(string=u'Направление',
+                                 selection=[('I', u'Входящие'),
+                                            ('O', u'Исходящие'),
+                                 track_visibility='onchange'
+                                 )
+
+    method = fields.Char(string=u'Имя метода',
+                         track_visibility='onchange')
+
+    @api.constrains('method')
+    def check_importer(self):
+        if not hasattr(self, self.method):
+            raise exceptions.ValidationError(u"Неправильный Импортер")
+
+    @api.multi
+    def run(self, sms):
+        # sms is dict with keys:
+        #  'direction' - 'I', 'O'
+        #  'id' - ИД. наверно, только для входящих
+        #  'from_number' - откого
+        #  'to_number' - накакой номер
+        #  'data' - дата
+        #  'body' - сообщение
+        # handler can change sms dict
+        handler = getattr(self, self.method)
+        return handler(sms)
+
+    @api.model
+    def run_all(self, sms):
+        domain = []
+
+        direction = sms.get('direction')
+        if direction:
+            domain.append(('direction', '=', direction))
+
+        for handler in self.search(domain):
+            handler.run(sms)
+
+    @api.model
+    def baron_add_sms_to_order_history(self, sms):
+        # Custom logic, this may be pluggable
+        # 
+        target_model = 'sale.order' # or lead
+        record_id = 1
+        self.env[target_model].search([('id', '=', record_id)]).message_post(body=sms.message,
+                                                                             subject="Получено SMS")
+
+
+
+
+class SmscGateway(models.Model):
     _name = 'esms.smsc'
     _descripion = u'Шлюз SMSЦентр'
 
@@ -95,6 +162,17 @@ class SmscGateway(models.Model):
         my_field = self.env['ir.model.fields'].search([('model_id', '=', my_model.id),
                                                        ('name', '=', my_field_name)])
 
+        # TODO what tz??
+        sms_date = datetime.datetime.utcnow()
+        Handler = self.env['esms.smsc.handler']
+        Handler.run(sms={'direction': 'O',
+                         'from_number': from_number,
+                         'to_number': to_number,
+                         'id': sms_id,
+                         'body': sms_content,
+                         'date': sms_date,
+                         'cost': cost)
+
         history_id = self.env['esms.history'].create({'account_id': sms_account.id,
                                                       'gateway_id': gateway_id.id,
 
@@ -107,7 +185,7 @@ class SmscGateway(models.Model):
                                                       'sms_gateway_message_id': sms_id,
                                                       'sms_content': sms_content,
                                                       'direction': 'O',
-                                                      'my_date': datetime.datetime.utcnow(),
+                                                      'my_date': sms_date,
 
                                                       'model_id': my_model.id,
                                                       'record_id': my_record_id,
@@ -177,6 +255,7 @@ class SmscGateway(models.Model):
             human_read_error = resp_data['error']
             return
 
+        Handler = self.env['esms.smsc.handler']
         sms = None
         for sms in resp_data:
             status = 'RECEIVED'
@@ -200,14 +279,13 @@ class SmscGateway(models.Model):
                                                           'cost': 0  # ???
                                                           })
 
-            continue
-
-            # Custom logic, this may be pluggable
-            # 
-            target_model = 'sale.order' # or lead
-            record_id = 1
-            self.env[target_model].search([('id', '=', record_id)]).message_post(body=sms.message,
-                                                                                 subject="Получено SMS")
+            Handler.run(sms={'direction': 'I',
+                             'from_number': sms.phone,
+                             'to_number': sms.to_phone,
+                             'id': sms.id,
+                             'body': sms.message,
+                             'date': sms.received,
+                             'cost': 0)
 
         if sms_account.smsc_store_last_received_id and sms:
             sms_account.smsc_last_received_id = sms.id
