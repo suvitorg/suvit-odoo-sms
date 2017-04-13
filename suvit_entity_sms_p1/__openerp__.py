@@ -6,6 +6,9 @@
     'category': "Tools",
     'summary': "Allows 2 way sms conversations between leads/partners using the p1sms.ru gateway",
     'license':'LGPL-3',
+    'depends': [
+        'suvit_entity_sms'
+    ],
     'data': [
         # 'security/ir.model.access.csv',
 
@@ -14,9 +17,6 @@
         'views/gateway_config.xml',
     ],
     'demo': [],
-    'depends': [
-        'entity_sms'
-    ],
     "external_dependencies": {
         'python': ['requests',
                    ]

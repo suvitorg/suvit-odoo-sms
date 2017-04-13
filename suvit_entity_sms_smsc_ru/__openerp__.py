@@ -7,16 +7,15 @@
     'summary': "Allows 2 way sms conversations between leads/partners using the smsc.ru gateway",
     'license':'LGPL-3',
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
 
         'data/esms.gateways.csv',
 
         'views/gateway_config.xml',
-        'views/handler.xml',
     ],
     'demo': [],
     'depends': [
-        'entity_sms'
+        'suvit_entity_sms'
     ],
     "external_dependencies": {
         'python': ['requests',

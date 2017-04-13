@@ -25,7 +25,7 @@
         </record>
 
         <menuitem id="menu_suvit_migration_tree"
-                  parent="base.menu_custom"
+                  parent="entity_sms.esms_gateway_config_menu"
                   action="action_suvit_sms_handler"
                   sequence="100"/>
 

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+
+      <record model="ir.ui.view" id="suvit_sms_history_form_view">
+          <field name="name">suvit history form view</field>
+          <field name="model">esms.history</field>
+          <field name="inherit_id" ref="entity_sms.esms_history_form_view" />
+          <field name="arch" type="xml">
+            <group position="inside">
+              <field name="cost" />
+            </group>
+          </field>
+      </record>
+
+      <record model="ir.ui.view" id="suvit_history_list_view">
+          <field name="name">suvit history tree view</field>
+          <field name="model">esms.history</field>
+          <field name="inherit_id" ref="entity_sms.esms_history_tree_view" />
+          <field name="arch" type="xml">
+            <tree position="inside">
+              <field name="cost" />
+            </tree>
+          </field>
+      </record>
+
+   </data>
+</openerp>
