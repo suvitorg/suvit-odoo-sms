@@ -214,7 +214,7 @@ class SmscGateway(models.Model):
         for sms in resp_data:
             status = 'RECEIVED'
             human_read_error = 'OK'
-            sms_date = datetime.datetime.strptime(sms['received'], '%d-%m-%Y %H:%M:%S')
+            sms_date = datetime.datetime.strptime(sms['received'], '%d.%m.%Y %H:%M:%S')
             history_id = self.env['esms.history'].create({'account_id': sms_account.id,
                                                           'gateway_id': gateway_id.id,
 
