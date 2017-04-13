@@ -171,11 +171,11 @@ class SmscGateway(models.Model):
                                                       'status_string': human_read_error,
                                                       'delivary_error_string': human_read_error,
 
+                                                      'direction': 'O',
                                                       'from_mobile': from_number,
                                                       'to_mobile': to_number,
                                                       'sms_gateway_message_id': sms_id,
                                                       'sms_content': sms_content,
-                                                      'direction': 'O',
                                                       'my_date': sms_date,
 
                                                       'model_id': my_model.id,
@@ -239,18 +239,21 @@ class SmscGateway(models.Model):
         #  },
         #  ...]
 
-        resp_data = resp.json()
+        try:
+            resp_data = resp.json()
+        except ValueError:
+            if not resp.text:
+                # no json
+                # ? store to history
+                return
+            else:
+                # bad json
+                resp_data = {'error_code': 100,
+                             'error': u'Неправильный json-формат в ответе'}
         if 'error_code' in resp_data:
             # TODO. store error in history
             status = 'failed'
             human_read_error = resp_data['error']
-            return
-
-        Handler = self.env['suvit.sms.handler']
-        sms = None
-        for sms in resp_data:
-            status = 'RECEIVED'
-            human_read_error = 'OK'
             history_id = self.env['esms.history'].create({'account_id': sms_account.id,
                                                           'gateway_id': gateway_id.id,
 
@@ -258,12 +261,31 @@ class SmscGateway(models.Model):
                                                           'status_string': human_read_error,
                                                           'delivary_error_string': human_read_error,
 
-                                                          'from_mobile': sms.phone,
-                                                          'to_mobile': sms.to_phone,
-                                                          'sms_gateway_message_id': sms.id,
-                                                          'sms_content': sms.message,
                                                           'direction': 'I',
-                                                          'my_date': sms.received,
+                                                          'my_date': datetime.datetime.utcnow(),
+                                                          })
+
+            return
+
+        Handler = self.env['suvit.sms.handler']
+        sms = None
+        for sms in resp_data:
+            status = 'RECEIVED'
+            human_read_error = 'OK'
+            sms_date = datetime.strptime(sms['received'], '%d-%m-%Y %H:%M:%S')
+            history_id = self.env['esms.history'].create({'account_id': sms_account.id,
+                                                          'gateway_id': gateway_id.id,
+
+                                                          'status_code': status,
+                                                          'status_string': human_read_error,
+                                                          'delivary_error_string': human_read_error,
+
+                                                          'direction': 'I',
+                                                          'from_mobile': sms['phone'],
+                                                          'to_mobile': sms['to_phone'],
+                                                          'sms_gateway_message_id': sms['id'],
+                                                          'sms_content': sms['message'],
+                                                          'my_date': sms_date,
                                                           # 'model_id': my_model.id,
                                                           # 'record_id': my_record_id,
                                                           # 'field_id': my_field.id,
@@ -271,15 +293,15 @@ class SmscGateway(models.Model):
                                                           })
 
             Handler.run_all(sms={'direction': 'I',
-                                 'from_number': sms.phone,
-                                 'to_number': sms.to_phone,
-                                 'id': sms.id,
-                                 'body': sms.message,
-                                 'date': sms.received,
+                                 'from_number': sms['phone'],
+                                 'to_number': sms['to_phone'],
+                                 'id': sms['id'],
+                                 'body': sms['message'],
+                                 'date': sms_date,
                                  'cost': 0})
 
         if sms_account.smsc_store_last_received_id and sms:
-            sms_account.smsc_last_received_id = sms.id
+            sms_account.smsc_last_received_id = sms['id']
 
 
 class SmscAccount(models.Model):
