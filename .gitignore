@@ -1,4 +1,6 @@
 1
+# simlink
+entity_sms
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
