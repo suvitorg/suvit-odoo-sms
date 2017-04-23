@@ -22,7 +22,11 @@ class Partner(models.Model):
         if not norm_phone:
             return
 
-        norm_phone = norm_phone.translate(None, "()- ")
+        # print norm_phone.encode('ascii', 'ignore').split(',', 1)[0]
+        norm_phone = (norm_phone.split(',', 1)[0]
+                                .encode('ascii', 'ignore')
+                                .translate(None, '()- ')
+                      )
         if len(norm_phone) < 10:
             # too few digits, may be without city number
             return
@@ -31,8 +35,11 @@ class Partner(models.Model):
             # norm_phone = self.mobile[1:]
             pass
         elif self.country_id.mobile_prefix:
-            if norm_phone.startswith("0"):
-                norm_phone = self.country_id.mobile_prefix + self.mobile[1:]
+            if norm_phone.startswith(("0",  # international prefix
+                                      "8",  # russian prefix
+                                      "7",  # bad numbers 795555-55555 example
+                                      )):
+                norm_phone = self.country_id.mobile_prefix + norm_phone[1:]
             else:
                 norm_phone = self.country_id.mobile_prefix + norm_phone
 
