@@ -41,6 +41,6 @@ class SmsTracker(models.AbstractModel):
                 if not getattr(rec, 'sms_track', True):
                     # dont sent for partner/order with disable sms_track
                     continue
-                template.send_template(template.id, rec)
+                template.send_template(template.id, rec.id)
 
         return res

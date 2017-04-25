@@ -22,7 +22,7 @@ class Partner(models.Model):
         if not norm_phone:
             return
 
-        # print norm_phone.encode('ascii', 'ignore').split(',', 1)[0]
+        # print norm_phone.split(',', 1)[0].encode('ascii', 'ignore')
         norm_phone = (norm_phone.split(',', 1)[0]
                                 .encode('ascii', 'ignore')
                                 .translate(None, '()- ')
