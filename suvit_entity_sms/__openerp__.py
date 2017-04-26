@@ -10,7 +10,7 @@
         'entity_sms'
     ],
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'views/handler.xml',
         'views/history.xml',
     ],
