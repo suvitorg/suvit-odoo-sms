@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from openerp import api, fields, models
 
 
@@ -41,6 +41,6 @@ class SmsTracker(models.AbstractModel):
                 if not getattr(rec, 'sms_track', True):
                     # dont sent for partner/order with disable sms_track
                     continue
-                template.send_template(template.id, rec.id)
+                template.sudo().send_template(template.id, rec.id)
 
         return res
